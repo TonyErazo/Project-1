@@ -68,8 +68,26 @@ class ShopHandler():
             """
             cursor.execute(purchase_query, (user.get_user_id(),))
             results = cursor.fetchall()
-            for row in results:
-                print(row)
+
+             # Fetch the data to update inventory
+            cursor.execute("""
+                SELECT carts.itemid, carts.itemamount
+                FROM carts
+                WHERE carts.userid = %s;
+            """, (user.get_user_id(),))
+
+            cart_items = cursor.fetchall()
+
+             # Update the inventory based on the cart contents
+            for item_id, item_amount in cart_items:
+                update_inventory_query = """
+                    UPDATE items
+                    SET inventory = inventory - %s
+                    WHERE id = %s;
+                """
+                cursor.execute(update_inventory_query, (item_amount, item_id))
+            #for row in results:
+            #    print(row)
 
 
             remove_item_query = "DELETE FROM carts WHERE userid = %s;"
